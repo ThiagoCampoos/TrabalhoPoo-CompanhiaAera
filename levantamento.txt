@@ -1,0 +1,49 @@
+Conceitos que v�o ser usados 
+Vari�veis primitivas e controle de fluxo
+Entrada e sa�da padr�o
+Arrays
+CRUD em linguagem OO com Array;
+Modificadores de acesso e atributos de classe
+Heran�a, reescrita e polimorfismo
+Classes abstratas
+Interfaces
+jar e javadoc e java lang
+Cole��es e estrutura de dados
+Acesso a arquivos
+Enumera��es
+Relat�rios
+
+Tecnologias usadas no trabalho
+classes
+strings
+arrays
+metados
+operadores
+equals
+metado transfere 
+Atributos de classe
+vari�veis do tipo atributo 
+tipo
+Construtores
+Scanner here
+Encapsulamento
+Getters e Setters
+Ocultamento da informa��o
+Heran�a
+reescrita 
+polimorfismo
+classes abstratas
+Interfaces
+Exce��es e controle de erros
+Paco
+java.util
+jar e javadoc
+java lang
+java io
+java.util.List
+Collections.sort
+java.util.Map
+Properties
+HashCode
+SuperClasses e Classes abstratas
+
