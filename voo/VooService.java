@@ -12,18 +12,20 @@ public class VooService {
     public VooService(VooDao dao, SystemClock clock) {
         this.dao = dao;
         this.clock = clock;
-        }
+    }
 
     public Voo criar(int id, String origem, String destino, LocalDate data, LocalTime duracao,
-            CompanhiaAerea companhiaAerea, int capacidade, EstadoVoo estado, String ida, String volta) {
-        Voo voo = new Voo(id, origem, destino, data, duracao, companhiaAerea, estado, capacidade, ida, volta);
+            LocalTime horario, CompanhiaAerea companhiaAerea, int capacidade, EstadoVoo estado, String ida,
+            String volta) {
+        Voo voo = new Voo(id, origem, destino, data, duracao, horario, companhiaAerea, estado, capacidade, ida, volta);
         voo.auditar(clock);
         return dao.create(voo);
     }
 
     public Voo atualizar(int id, String origem, String destino, LocalDate data, LocalTime duracao,
-            CompanhiaAerea companhiaAerea, int capacidade, EstadoVoo estado, String ida, String volta) {
-        Voo voo = new Voo(id, origem, destino, data, duracao, companhiaAerea, estado, capacidade, ida, volta);
+            LocalTime horario, CompanhiaAerea companhiaAerea, int capacidade, EstadoVoo estado, String ida,
+            String volta) {
+        Voo voo = new Voo(id, origem, destino, data, duracao, horario, companhiaAerea, estado, capacidade, ida, volta);
         voo.auditar(clock);
         return dao.update(voo);
     }
@@ -52,8 +54,16 @@ public class VooService {
         return dao.findByData(data);
     }
 
+    public Voo[] buscarPorDataHorario(LocalDate data, LocalTime horario) {
+        return dao.findByDataHorario(data, horario);
+    }
+
     public Voo[] buscarPorOrigemDestinoData(String origem, String destino, LocalDate data) {
         return dao.findByOrigemDestinoData(origem, destino, data);
+    }
+
+    public Voo[] buscarPorOrigemDestinoDataHorario(String origem, String destino, LocalDate data, LocalTime horario) {
+        return dao.findByOrigemDestinoDataHorario(origem, destino, data, horario);
     }
 
     public Voo[] buscarPorIdaVolta(String ida, String volta) {
@@ -64,6 +74,7 @@ public class VooService {
         Voo voo = dao.findById(id);
         if (voo != null) {
             voo.setEstado(novoEstado);
+            voo.auditar(clock);
             dao.update(voo);
         }
     }

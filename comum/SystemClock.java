@@ -3,7 +3,6 @@ package comum;
 import java.time.LocalDateTime;
 
 
-
 public class SystemClock {
     
     private static SystemClock instance;

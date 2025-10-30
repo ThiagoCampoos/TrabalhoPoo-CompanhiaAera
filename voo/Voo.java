@@ -7,10 +7,10 @@ import java.time.LocalTime;
 
 public class Voo extends EntidadeBase {
 
-    public int id;
     public String origem;
     public String destino;
     public LocalDate data;
+    public LocalTime horario;
     public LocalTime duracao;
     public String ida;
     public String volta;
@@ -18,13 +18,13 @@ public class Voo extends EntidadeBase {
     public EstadoVoo estado;
     public int capacidade;
 
-    public Voo(int id, String origem, String destino, LocalDate data, LocalTime duracao,
+    public Voo(int id, String origem, String destino, LocalDate data, LocalTime horario, LocalTime duracao,
             CompanhiaAerea companhiaAerea, EstadoVoo estado, int capacidade, String ida, String volta) {
         super(id, null, null);
-        this.id = id;
         this.origem = origem;
         this.destino = destino;
         this.data = data;
+        this.horario = horario;
         this.duracao = duracao;
         this.companhiaAerea = companhiaAerea;
         this.estado = estado;
@@ -106,6 +106,14 @@ public class Voo extends EntidadeBase {
         this.volta = volta;
     }
 
+    public LocalTime getHorario() {
+        return horario;
+    }
+
+    public void setHorario(LocalTime horario) {
+        this.horario = horario;
+    }
+
     @Override
     public boolean validar() {
         return origem != null && !origem.isEmpty()
@@ -116,7 +124,8 @@ public class Voo extends EntidadeBase {
                 && capacidade > 0
                 && estado != null
                 && ida != null && !ida.isEmpty()
-                && volta != null && !volta.isEmpty();
+                && volta != null && !volta.isEmpty()
+                && horario != null;
     }
 
     @Override
@@ -133,6 +142,7 @@ public class Voo extends EntidadeBase {
                 + ", dataModificacao=" + getDataModificacao()
                 + ", ida='" + ida + '\''
                 + ", volta='" + volta + '\''
+                + ", horario=" + horario
                 + '}';
     }
 

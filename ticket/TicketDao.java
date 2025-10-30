@@ -3,7 +3,7 @@ package ticket;
 import comum.DaoBase;
 
 public class TicketDao extends DaoBase<Ticket> {
-   
+
     public TicketDao() {
         super(10);
     }
@@ -15,16 +15,14 @@ public class TicketDao extends DaoBase<Ticket> {
 
     @Override
     public Ticket cloneEntity(Ticket entity) {
-        if (entity == null) return null;
+        if (entity == null)
+            return null;
         return new Ticket(
                 entity.getId(),
                 entity.getValor(),
                 entity.getVoo(),
                 entity.getPassageiro(),
-                entity.getCodigo(),
-                entity.getDataCriacao(),
-                entity.getDataModificacao()
-        );
+                entity.getCodigo(), entity.getAssento());
     }
 
     public Ticket findByCodigo(String codigo) {

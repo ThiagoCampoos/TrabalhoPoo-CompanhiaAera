@@ -2,7 +2,7 @@ package passageiro;
 
 import comum.SystemClock;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 public class PassageiroService {
 
     private final PassageiroDao dao;
@@ -15,20 +15,25 @@ public class PassageiroService {
 
     public Passageiro criar(String nome, LocalDate nascimento, String documento, String login, String senha) {
         if (nome == null || nome.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome é obrigatório.");
+            throw new IllegalArgumentException("Nome e obrigatorio.");
         }
         if (documento == null || documento.trim().isEmpty()) {
-            throw new IllegalArgumentException("Documento é obrigatório.");
+            throw new IllegalArgumentException("Documento e obrigatorio.");
         }
         if (dao.findByDocumento(documento) != null) {
-            throw new IllegalArgumentException("Documento já cadastrado.");
+            throw new IllegalArgumentException("Documento ja cadastrado.");
         }
         if (login != null && !login.trim().isEmpty() && dao.findByLogin(login) != null) {
-            throw new IllegalArgumentException("Login já cadastrado.");
+            throw new IllegalArgumentException("Login ja cadastrado.");
         }
 
-        LocalDateTime agora = clock.now();
-        Passageiro p = new Passageiro(0, nome, nascimento, documento, login, senha, agora, agora);
+        Passageiro p = new Passageiro();
+        p.setNome(nome);
+        p.setNascimento(nascimento);
+        p.setDocumento(documento);
+        p.setLogin(login);
+        p.setSenha(senha);
+        p.auditar(clock);
         return dao.create(p);
     }
 
@@ -36,13 +41,13 @@ public class PassageiroService {
             String senha) {
         Passageiro existente = dao.findById(id);
         if (existente == null) {
-            throw new IllegalArgumentException("Passageiro não encontrado.");
+            throw new IllegalArgumentException("Passageiro nao encontrado.");
         }
 
         if (documento != null && !documento.equals(existente.getDocumento())) {
             Passageiro outro = dao.findByDocumento(documento);
             if (outro != null && outro.getId() != id) {
-                throw new IllegalArgumentException("Documento já cadastrado para outro passageiro.");
+                throw new IllegalArgumentException("Documento ja cadastrado para outro passageiro.");
             }
             existente.setDocumento(documento);
         }
@@ -50,7 +55,7 @@ public class PassageiroService {
         if (login != null && !login.equals(existente.getLogin())) {
             Passageiro outroLogin = dao.findByLogin(login);
             if (outroLogin != null && outroLogin.getId() != id) {
-                throw new IllegalArgumentException("Login já cadastrado para outro passageiro.");
+                throw new IllegalArgumentException("Login ja cadastrado para outro passageiro.");
             }
             existente.setLogin(login);
         }
@@ -62,7 +67,7 @@ public class PassageiroService {
         if (senha != null)
             existente.setSenha(senha);
 
-        existente.setDataModificacao(clock.now());
+        existente.auditar(clock);
         return dao.update(existente);
     }
 
@@ -78,4 +83,3 @@ public class PassageiroService {
         return dao.findAll();
     }
 }
-

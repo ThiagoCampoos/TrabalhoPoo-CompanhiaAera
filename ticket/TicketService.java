@@ -14,13 +14,33 @@ public class TicketService {
         this.clock = clock;
     }
 
-    public Ticket criar(double valor, Voo voo, Passageiro passageiro) {
+    public Ticket criar(double valor, Voo voo, Passageiro passageiro,  LocalDateTime dataCriacao,
+            LocalDateTime dataModificacao, String assento) {
+        if (passageiro == null) {
+            throw new IllegalArgumentException("Ticket nao possui passageiro associado.");
+        }
+        if (voo == null) {
+            throw new IllegalArgumentException("Ticket nao possui voo associado.");
+        }
+        if (valor < 0) {
+            throw new IllegalArgumentException("Valor do ticket invalido.");
+        }
         int id = dao.nextId++;
         String codigo = gerarCodigo(id, voo);
-        LocalDateTime agora = clock.now();
-        Ticket ticket = new Ticket(id, valor, voo, passageiro, codigo, agora, agora);
+        Ticket ticket = new Ticket(id, valor, voo, passageiro, codigo, assento);
         ticket.auditar(clock);
         return dao.create(ticket);
+    }
+
+    public Ticket atribuirAssento(int ticketId, String assento) {
+        Ticket t = dao.findById(ticketId);
+        if (t == null)
+            throw new IllegalArgumentException("Ticket nao encontrado.");
+        if (assento == null || assento.trim().isEmpty())
+            throw new IllegalArgumentException("Assento invalido.");
+        t.setAssento(assento.trim());
+        t.auditar(clock);
+        return dao.update(t);
     }
 
     private String gerarCodigo(int id, Voo voo) {

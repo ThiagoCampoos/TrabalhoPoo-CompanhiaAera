@@ -1,39 +1,27 @@
 package ticket;
 
 import comum.EntidadeBase;
-import java.time.LocalDateTime;
 import passageiro.Passageiro;
 import voo.Voo;
 
 public class Ticket extends EntidadeBase {
-    public int id;
     public double valor;
     public Voo voo;
     public Passageiro passageiro;
     public String codigo;
-    public LocalDateTime dataCriacao;
-    public LocalDateTime dataModificacao;
+    public String assento;
 
     public Ticket() {
     }
 
-    public Ticket(int id, double valor, Voo voo, Passageiro passageiro, String codigo,
-            LocalDateTime dataCriacao, LocalDateTime dataModificacao) {
+    public Ticket(int id, double valor, Voo voo, Passageiro passageiro, String codigo, String assento) {
+        super(id, null, null);
         this.id = id;
         this.valor = valor;
         this.voo = voo;
         this.passageiro = passageiro;
         this.codigo = codigo;
-        this.dataCriacao = dataCriacao;
-        this.dataModificacao = dataModificacao;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+        this.assento = assento;
     }
 
     public double getValor() {
@@ -67,23 +55,12 @@ public class Ticket extends EntidadeBase {
     public void setCodigo(String codigo) {
         this.codigo = codigo;
     }
-
-    public LocalDateTime getDataCriacao() {
-        return dataCriacao;
+    public String getAssento() {
+        return assento;
     }
-
-    public void setDataCriacao(LocalDateTime dataCriacao) {
-        this.dataCriacao = dataCriacao;
+    public void setAssento(String assento) {
+        this.assento = assento;
     }
-
-    public LocalDateTime getDataModificacao() {
-        return dataModificacao;
-    }
-
-    public void setDataModificacao(LocalDateTime dataModificacao) {
-        this.dataModificacao = dataModificacao;
-    }
-
     @Override
     public String toString() {
         return "Ticket{" +
@@ -92,8 +69,7 @@ public class Ticket extends EntidadeBase {
                 ", voo=" + (voo != null ? voo.getId() : null) +
                 ", passageiro=" + (passageiro != null ? passageiro.getId() : null) +
                 ", codigo='" + codigo + '\'' +
-                ", dataCriacao=" + dataCriacao +
-                ", dataModificacao=" + dataModificacao +
+                ", assento='" + assento + '\'' +
                 '}';
     }
 
@@ -102,7 +78,8 @@ public class Ticket extends EntidadeBase {
         return valor >= 0
                 && voo != null
                 && passageiro != null
-                && codigo != null && !codigo.isEmpty();
+                && codigo != null && !codigo.isEmpty()
+                && assento != null && !assento.isEmpty();
     }
     
     @Override

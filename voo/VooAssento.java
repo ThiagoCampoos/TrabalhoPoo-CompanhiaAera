@@ -10,9 +10,9 @@ public class VooAssento extends EntidadeBase {
     public boolean ocupado;
     public Passageiro passageiro;
 
-    public VooAssento(int id, Voo voo, String codigoAssento, Passageiro passageiro, LocalDateTime dataCriacao,
-            LocalDateTime dataModificacao, Boolean ocupado) {
+    public VooAssento(int id, Voo voo, String codigoAssento, Passageiro passageiro, LocalDateTime dataCriacao,LocalDateTime dataModificacao, Boolean ocupado) {
         super(id, dataCriacao, dataModificacao);
+        this.id = id;
         this.voo = voo;
         this.codigoAssento = codigoAssento != null ? codigoAssento.trim().toUpperCase() : null;
         this.ocupado = ocupado;

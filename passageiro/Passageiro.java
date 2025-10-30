@@ -1,10 +1,12 @@
 package passageiro;
 
+import comum.EntidadeBase;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class Passageiro {
+
+public class Passageiro extends EntidadeBase {
 
     private int id;
     private String nome;
@@ -12,22 +14,18 @@ public class Passageiro {
     private String documento;
     private String login;
     private String senha;
-    private LocalDateTime dataCriacao;
-    private LocalDateTime dataModificacao;
-
+    
     public Passageiro() {
     }
 
-    public Passageiro(int id, String nome, LocalDate nascimento, String documento, String login, String senha,
-            LocalDateTime dataCriacao, LocalDateTime dataModificacao) {
+    public Passageiro(int id, String nome, LocalDate nascimento, String documento, String login, String senha) {
+        super(id, null, null);
         this.id = id;
         this.nome = nome;
         this.nascimento = nascimento;
         this.documento = documento;
         this.login = login;
         this.senha = senha;
-        this.dataCriacao = dataCriacao;
-        this.dataModificacao = dataModificacao;
     }
 
     public int getId() {
@@ -120,5 +118,21 @@ public class Passageiro {
                 ", dataCriacao=" + dataCriacao +
                 ", dataModificacao=" + dataModificacao +
                 '}';
+    }
+
+    @Override
+    public boolean validar() {
+        return nome != null && !nome.trim().isEmpty()
+                && nascimento != null
+                && documento != null && !documento.trim().isEmpty();
+    }
+
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
     }
 }
