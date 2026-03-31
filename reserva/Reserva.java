@@ -4,9 +4,9 @@ import comum.EntidadeBase;
 
 public class Reserva extends EntidadeBase {
     private int id;
-    private String codigo; 
+    private String codigo;
     private String sobrenomePassageiro;
-    private int[] ticketIds; 
+    private int[] ticketIds;
 
     public Reserva(int id, String codigo, String sobrenomePassageiro, int[] ticketIds) {
         this.id = id;
@@ -15,12 +15,25 @@ public class Reserva extends EntidadeBase {
         this.ticketIds = ticketIds == null ? new int[0] : ticketIds.clone();
     }
 
-    public int getId() { return id; }
-    public String getCodigo() { return codigo; }
-    public String getSobrenomePassageiro() { return sobrenomePassageiro; }
-    public int[] getTicketIds() { return ticketIds.clone(); }
+    public int getId() {
+        return id;
+    }
 
-    public void setTicketIds(int[] ticketIds) { this.ticketIds = ticketIds == null ? new int[0] : ticketIds.clone(); }
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public String getSobrenomePassageiro() {
+        return sobrenomePassageiro;
+    }
+
+    public int[] getTicketIds() {
+        return ticketIds.clone();
+    }
+
+    public void setTicketIds(int[] ticketIds) {
+        this.ticketIds = ticketIds == null ? new int[0] : ticketIds.clone();
+    }
 
     @Override
     public String toString() {
@@ -29,6 +42,15 @@ public class Reserva extends EntidadeBase {
 
     @Override
     public boolean validar() {
-        return codigo != null && !codigo.trim().isEmpty() && sobrenomePassageiro != null && !sobrenomePassageiro.trim().isEmpty();
+        return codigo != null && !codigo.trim().isEmpty() && sobrenomePassageiro != null
+                && !sobrenomePassageiro.trim().isEmpty();
+    }
+
+    public void setCodigo(String trim) {
+        this.codigo = trim;
+    }
+
+    public void setSobrenomePassageiro(String trim) {
+        this.sobrenomePassageiro = trim;
     }
 }

@@ -18,20 +18,18 @@ public class Voo extends EntidadeBase {
     public EstadoVoo estado;
     public int capacidade;
 
-    public Voo(int id, String origem, String destino, LocalDate data, LocalTime horario, LocalTime duracao,
-            CompanhiaAerea companhiaAerea, EstadoVoo estado, int capacidade, String ida, String volta) {
-        super(id, null, null);
-        this.origem = origem;
-        this.destino = destino;
+    public Voo() {
+        super(0, null, null);
+        setOrigem(origem);
+        setDestino(destino);
         this.data = data;
         this.horario = horario;
         this.duracao = duracao;
         this.companhiaAerea = companhiaAerea;
-        this.estado = estado;
+        this.estado = estado != null ? estado : EstadoVoo.PROGRAMADO;
         this.capacidade = capacidade;
         this.ida = ida;
         this.volta = volta;
-        this.estado = estado != null ? estado : EstadoVoo.PROGRAMADO;
     }
 
     public String getOrigem() {
@@ -154,4 +152,5 @@ public class Voo extends EntidadeBase {
             throw new AssertionError();
         }
     }
+
 }

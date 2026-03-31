@@ -3,81 +3,53 @@ package main;
 import admin.*;
 import boarding.*;
 import checkin.Checkin;
-import checkin.CheckinDao;
+import checkin.CheckinDaoJdbc;
 import checkin.CheckinService;
 import companhia.*;
 import comum.SystemClock;
 import despacho.*;
 import entrada.*;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Scanner;
 import passageiro.*;
 import reserva.*;
 import ticket.*;
+import user.AuthService;
+import user.Perfil;
+import user.SessaoUser;
+import user.UserDaoJdbc;
+import user.UserService;
 import voo.*;
 
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        CompanhiaAereaService companhiaService = new CompanhiaAereaService(new CompanhiaAereaDao(), new SystemClock());
-        PassageiroService passageiroService = new PassageiroService(new PassageiroDao(), new SystemClock());
-        VooService vooService = new VooService(new VooDao(), new SystemClock());
-        TicketService ticketService = new TicketService(new TicketDao(), new SystemClock());
-        CheckinService checkinService = new CheckinService(new CheckinDao(), ticketService, new SystemClock());
-        ReservaService reservaService = new ReservaService(new ReservaDao(), new SystemClock());
-        DespachoService despachoService = new DespachoService(new DespachoDao(), new SystemClock());
-        EntradaService entradaService = new EntradaService(new EntradaDao(), new EntradaAviaoDao(), new SystemClock());
-        BoardingPassService boardingService = new BoardingPassService(new BoardingPassDao(), new SystemClock());
-        AdminService adminService = new AdminService(new TicketDao(), new VooDao(), new PassageiroDao(), new SystemClock());
-
-        CompanhiaAerea latam = companhiaService.criar("LATAM", "LA");
-        CompanhiaAerea azul = companhiaService.criar("Azul", "AZU");
-        Passageiro joao = passageiroService.criar("João Silva", LocalDate.of(1990, 1, 1), "123456", "joao", "123");
-        Passageiro maria = passageiroService.criar("Maria Souza", LocalDate.of(1985, 5, 20), "654321", "maria",
-                "123");
-        Voo voo1 = vooService.criar(1, "GRU", "SDU", LocalDate.of(2025, 12, 5), LocalTime.of(10, 0), LocalTime.of(12, 0),
-                latam, 150,
-                EstadoVoo.PROGRAMADO, "2025-12-05T08:00", "2025-12-10T18:00");
-        Voo voo2 = vooService.criar(2, "SDU", "GRU", LocalDate.of(2025, 12, 10), LocalTime.of(2, 0),
-                LocalTime.of(10, 0), azul, 120,
-                EstadoVoo.EMBARQUE, "2025-12-10T19:00", "null");
-
-        // --- Dados de teste automáticos (tickets, reserva, despacho, entradas, boarding) ---
-        try {
-            Ticket ticketJoao = ticketService.criar(300.0, voo1, joao, null, null, "12A");
-            Ticket ticketMaria1 = ticketService.criar(350.0, voo2, maria, null, null, "14B");
-            Ticket ticketMaria2 = ticketService.criar(280.0, voo1, maria, null, null, "15C");
-
-            // reserva para Maria com duas vendas/tickets
-            Reserva reservaMaria = reservaService.criar("R100-MARIA", "Souza", new int[] { ticketMaria1.getId(), ticketMaria2.getId() });
-
-            // despachos
-            Despacho despacho1 = despachoService.criar(ticketJoao.getId(), joao.getDocumento(), 23.5);
-            Despacho despacho2 = despachoService.criar(ticketMaria1.getId(), maria.getDocumento(), 18.0);
-
-            // entradas
-            EntradaAeroporto entradaJoao = entradaService.registrarEntradaAeroporto(ticketJoao.getId(), "Sala VIP");
-            EntradaAviao entradaJoaoAviao = entradaService.registrarEntradaAviao(ticketJoao.getId());
-
-            // boarding passes
-            BoardingPass bpJoao = boardingService.criarParaTicket(ticketJoao.getId(), "JOAO | GRU -> SDU | Assento 12A");
-            BoardingPass bpMaria = boardingService.criarParaTicket(ticketMaria1.getId(), "MARIA | SDU -> GRU | Assento 14B");
-
-            System.out.println("\n--- Dados de teste criados ---");
-            System.out.println(ticketJoao);
-            System.out.println(ticketMaria1);
-            System.out.println(ticketMaria2);
-            System.out.println(reservaMaria);
-            System.out.println(despacho1);
-            System.out.println(despacho2);
-            System.out.println(entradaJoao);
-            System.out.println(entradaJoaoAviao);
-            System.out.println(bpJoao);
-            System.out.println(bpMaria);
-        } catch (Exception e) {
-            System.out.println("Erro ao criar dados de teste: " + e.getMessage());
-        }
+        SystemClock clock = new SystemClock();
+        CompanhiaAereaService companhiaService = new CompanhiaAereaService(new CompanhiaAereaDaojdbc(), clock);
+        PassageiroDaoJdbc passageiroDao = new PassageiroDaoJdbc();
+        PassageiroService passageiroService = new PassageiroService(passageiroDao, clock);
+        PassageiroArquivoService passageiroArquivoService = new PassageiroArquivoService(passageiroService);
+        VooService vooService = new VooService(new VooDaoJdbc(), new SystemClock());
+        TicketService ticketService = new TicketService(new TicketDaoJdbc(), new SystemClock());
+        CheckinService checkinService = new CheckinService(new CheckinDaoJdbc(),
+                ticketService, vooService, clock);
+        ReservaService reservaService = new ReservaService(new ReservaDaoJdbc(), new SystemClock());
+        DespachoService despachoService = new DespachoService(new DespachoDaoJdbc(), new SystemClock());
+        EntradaService entradaService = new EntradaService(new EntradaDaoJdbc(), new EntradaAviaoDaoJdbc(),
+                new SystemClock());
+        BoardingPassService boardingService = new BoardingPassService(new BoardingPassDaoJdbc(), new SystemClock());
+        AdminService adminService = new AdminService(new TicketDaoJdbc(), new VooDaoJdbc(), new PassageiroDaoJdbc(),
+                new SystemClock());
+        UserService userService = new UserService(new UserDaoJdbc(), new SystemClock());
+        String senhaPadraoAdmin = System.getProperty("ADMIN_DEFAULT_PASSWORD",
+                System.getenv("ADMIN_DEFAULT_PASSWORD"));
+        userService.garantirAdministradorInicial(senhaPadraoAdmin);
+        AuthService authService = new AuthService(userService, passageiroDao, clock);
+        SessaoUser sessaoAtual = realizarLogin(sc, authService);
 
         while (true) {
             System.out.println("\n=== Menu Principal ===");
@@ -88,6 +60,7 @@ public class Main {
             System.out.println("5 - Compra de intinerario Ida e Volta");
             System.out.println("6 - Check-in");
             System.out.println("7 - Operacoes Aeroporto (Reserva/Despacho/Entradas/Boarding/Relatorios)");
+            System.out.println("8 - Importar Passageiros via Arquivo");
             System.out.println("0 - Sair");
             System.out.print("Escolha: ");
             int opcao = sc.nextInt();
@@ -98,25 +71,37 @@ public class Main {
 
             switch (opcao) {
                 case 1:
-                    menuCompanhia(sc, companhiaService);
+                    authService.exigirPerfil(Perfil.ADMIN);
+                    menuCompanhia(sc, companhiaService, sessaoAtual);
                     break;
                 case 2:
-                    menuPassageiro(sc, passageiroService);
+                    authService.exigirPerfil(Perfil.ADMIN, Perfil.PASSAGEIRO);
+                    menuPassageiro(sc, passageiroService, sessaoAtual);
                     break;
                 case 3:
-                    menuVoo(sc, vooService, companhiaService);
+                    authService.exigirPerfil(Perfil.ADMIN, Perfil.FUNCIONARIO);
+                    menuVoo(sc, vooService, companhiaService, sessaoAtual);
                     break;
                 case 4:
-                    menuTicket(sc, ticketService, vooService, passageiroService);
+                    authService.exigirPerfil(Perfil.ADMIN, Perfil.FUNCIONARIO, Perfil.PASSAGEIRO);
+                    menuTicket(sc, ticketService, vooService, passageiroService, sessaoAtual);
                     break;
                 case 5:
-                    menuItinerario(sc, vooService, ticketService, passageiroService);
+                    authService.exigirPerfil(Perfil.PASSAGEIRO, Perfil.ADMIN);
+                    menuItinerario(sc, vooService, ticketService, passageiroService, sessaoAtual);
                     break;
                 case 6:
-                    menuCheckin(sc, checkinService, ticketService, passageiroService, vooService);
+                    authService.exigirPerfil(Perfil.PASSAGEIRO, Perfil.ADMIN);
+                    menuCheckin(sc, checkinService, ticketService, passageiroService, vooService, sessaoAtual);
                     break;
                 case 7:
-                    menuOperacoesAeroporto(sc, reservaService, despachoService, entradaService, boardingService, adminService, companhiaService);
+                    authService.exigirPerfil(Perfil.ADMIN, Perfil.FUNCIONARIO);
+                    menuOperacoesAeroporto(sc, reservaService, despachoService,
+                            entradaService, boardingService, adminService, companhiaService, sessaoAtual);
+                    break;
+                case 8:
+                    authService.exigirPerfil(Perfil.ADMIN);
+                    menuImportacaoPassageiros(sc, passageiroArquivoService);
                     break;
                 default:
                     System.out.println("Opcao invalida.");
@@ -125,8 +110,24 @@ public class Main {
         sc.close();
     }
 
+    private static SessaoUser realizarLogin(Scanner sc, AuthService authService) {
+        while (true) {
+            try {
+                System.out.print("Login: ");
+                String login = sc.nextLine();
+                System.out.print("Senha: ");
+                String senha = sc.nextLine();
+                SessaoUser sessao = authService.autenticar(login, senha);
+                System.out.println("Autenticado como " + sessao.getUsuario().getLogin());
+                return sessao;
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
     private static void menuCheckin(Scanner sc, CheckinService checkinService, TicketService ticketService,
-            PassageiroService passageiroService, VooService vooService) {
+            PassageiroService passageiroService, VooService vooService, SessaoUser sessaoAtual) {
         while (true) {
             System.out.println("\n=== Menu Check-in ===");
             System.out.println("1 - Fazer check-in");
@@ -148,11 +149,12 @@ public class Main {
                         System.out.print("ID do ticket: ");
                         int ticketId = sc.nextInt();
                         sc.nextLine();
-                        System.out.print("Documento (do passageiro): ");
-                        String documento = sc.nextLine();
+                        System.out.print("ID do passageiro: ");
+                        int passageiroIdConf = sc.nextInt();
+                        sc.nextLine();
                         System.out.print("Assento (enter para AUTO): ");
                         String assento = sc.nextLine();
-                        checkin.Checkin criado = checkinService.criar(ticketId, documento, assento);
+                        checkin.Checkin criado = checkinService.criar(ticketId, passageiroIdConf, assento);
                         System.out.println("Check-in criado: " + criado);
                         System.out.println(checkinService.gerarBoardingPass(criado));
                         break;
@@ -197,7 +199,7 @@ public class Main {
     }
 
     private static void menuItinerario(Scanner sc, VooService vooService, TicketService ticketService,
-            PassageiroService passageiroService) {
+            PassageiroService passageiroService, SessaoUser sessaoAtual) {
         System.out.println("\n=== Compra de Itinerario Ida e Volta ===");
         System.out.print("Origem: ");
         String origem = sc.nextLine();
@@ -259,7 +261,7 @@ public class Main {
     }
 
     private static void menuTicket(Scanner sc, TicketService ticketService, VooService vooService,
-            PassageiroService passageiroService) {
+            PassageiroService passageiroService, SessaoUser sessaoAtual) {
         while (true) {
             System.out.println("\n=== Menu Ticket ===");
             System.out.println("1 - Criar");
@@ -267,6 +269,7 @@ public class Main {
             System.out.println("3 - Buscar por ID");
             System.out.println("4 - Buscar por codigo");
             System.out.println("5 - Remover");
+            System.out.println("6 - Atribuir assento a ticket");
             System.out.println("0 - Voltar");
             System.out.print("Escolha: ");
             int opcao = sc.nextInt();
@@ -322,6 +325,13 @@ public class Main {
                         System.out.println(removido ? "Removido." : "Não encontrado.");
                         break;
                     case 6:
+                        System.out.print("ID do ticket: ");
+                        int ticketParaAssento = sc.nextInt();
+                        sc.nextLine();
+                        System.out.print("Assento desejado: ");
+                        String assentoEscolhido = sc.nextLine();
+                        Ticket atualizadoAssento = ticketService.atribuirAssento(ticketParaAssento, assentoEscolhido);
+                        System.out.println("Assento atualizado: " + atualizadoAssento);
                         break;
                     default:
                         System.out.println("Opcao inválida.");
@@ -332,7 +342,8 @@ public class Main {
         }
     }
 
-    private static void menuVoo(Scanner sc, VooService vooService, CompanhiaAereaService companhiaService) {
+    private static void menuVoo(Scanner sc, VooService vooService, CompanhiaAereaService companhiaService,
+            SessaoUser sessaoAtual) {
         while (true) {
             System.out.println("\n=== Menu Voo ===");
             System.out.println("1 - Criar");
@@ -492,7 +503,7 @@ public class Main {
         }
     }
 
-    private static void menuPassageiro(Scanner sc, PassageiroService passageiroService) {
+    private static void menuPassageiro(Scanner sc, PassageiroService passageiroService, SessaoUser sessaoAtual) {
         while (true) {
             System.out.println("\n=== Menu Passageiro ===");
             System.out.println("1 - Criar");
@@ -582,7 +593,8 @@ public class Main {
 
     private static void menuOperacoesAeroporto(Scanner sc, ReservaService reservaService,
             DespachoService despachoService, EntradaService entradaService,
-            BoardingPassService boardingService, AdminService adminService, CompanhiaAereaService companhiaService) {
+            BoardingPassService boardingService, AdminService adminService, CompanhiaAereaService companhiaService,
+            SessaoUser sessaoAtual) {
         while (true) {
             System.out.println("\n=== Operacoes Aeroporto ===");
             System.out.println("1 - Reservas (buscar/criar)");
@@ -592,8 +604,10 @@ public class Main {
             System.out.println("5 - Relatorios Administrativos");
             System.out.println("0 - Voltar");
             System.out.print("Escolha: ");
-            int opc = sc.nextInt(); sc.nextLine();
-            if (opc == 0) break;
+            int opc = sc.nextInt();
+            sc.nextLine();
+            if (opc == 0)
+                break;
             try {
                 switch (opc) {
                     case 1:
@@ -609,7 +623,7 @@ public class Main {
                         menuBoarding(sc, boardingService);
                         break;
                     case 5:
-                        menuAdmin(sc, adminService, companhiaService);
+                        menuAdmin(sc, adminService, companhiaService, boardingService);
                         break;
                     default:
                         System.out.println("Opcao invalida.");
@@ -629,8 +643,10 @@ public class Main {
             System.out.println("4 - Remover");
             System.out.println("0 - Voltar");
             System.out.print("Escolha: ");
-            int opc = sc.nextInt(); sc.nextLine();
-            if (opc == 0) break;
+            int opc = sc.nextInt();
+            sc.nextLine();
+            if (opc == 0)
+                break;
             try {
                 switch (opc) {
                     case 1:
@@ -650,18 +666,22 @@ public class Main {
                         System.out.println(found != null ? found : "Nao encontrada.");
                         break;
                     case 3:
-                        for (Reserva rr : reservaService.listarTodos()) System.out.println(rr);
+                        for (Reserva rr : reservaService.listarTodos())
+                            System.out.println(rr);
                         break;
                     case 4:
                         System.out.print("ID para remover: ");
-                        int idRem = sc.nextInt(); sc.nextLine();
+                        int idRem = sc.nextInt();
+                        sc.nextLine();
                         boolean rem = reservaService.remover(idRem);
                         System.out.println(rem ? "Removida." : "Nao encontrada.");
                         break;
                     default:
                         System.out.println("Opcao invalida.");
                 }
-            } catch (Exception e) { System.out.println("Erro: " + e.getMessage()); }
+            } catch (Exception e) {
+                System.out.println("Erro: " + e.getMessage());
+            }
         }
     }
 
@@ -674,13 +694,16 @@ public class Main {
             System.out.println("4 - Remover");
             System.out.println("0 - Voltar");
             System.out.print("Escolha: ");
-            int opc = sc.nextInt(); sc.nextLine();
-            if (opc == 0) break;
+            int opc = sc.nextInt();
+            sc.nextLine();
+            if (opc == 0)
+                break;
             try {
                 switch (opc) {
                     case 1:
                         System.out.print("Ticket ID: ");
-                        int tId = sc.nextInt(); sc.nextLine();
+                        int tId = sc.nextInt();
+                        sc.nextLine();
                         System.out.print("Documento: ");
                         String doc = sc.nextLine();
                         System.out.print("Peso (kg): ");
@@ -689,11 +712,13 @@ public class Main {
                         System.out.println("Criado: " + d);
                         break;
                     case 2:
-                        for (Despacho db : despachoService.listarTodos()) System.out.println(db);
+                        for (Despacho db : despachoService.listarTodos())
+                            System.out.println(db);
                         break;
                     case 3:
                         System.out.print("ID: ");
-                        int id = sc.nextInt(); sc.nextLine();
+                        int id = sc.nextInt();
+                        sc.nextLine();
                         System.out.print("Novo documento (enter para manter): ");
                         String nd = sc.nextLine();
                         System.out.print("Novo peso: ");
@@ -703,14 +728,17 @@ public class Main {
                         break;
                     case 4:
                         System.out.print("ID: ");
-                        int idr = sc.nextInt(); sc.nextLine();
+                        int idr = sc.nextInt();
+                        sc.nextLine();
                         boolean r = despachoService.remover(idr);
                         System.out.println(r ? "Removido." : "Nao encontrado.");
                         break;
                     default:
                         System.out.println("Opcao invalida.");
                 }
-            } catch (Exception e) { System.out.println("Erro: " + e.getMessage()); }
+            } catch (Exception e) {
+                System.out.println("Erro: " + e.getMessage());
+            }
         }
     }
 
@@ -721,13 +749,16 @@ public class Main {
             System.out.println("2 - Registrar entrada no aviao");
             System.out.println("0 - Voltar");
             System.out.print("Escolha: ");
-            int opc = sc.nextInt(); sc.nextLine();
-            if (opc == 0) break;
+            int opc = sc.nextInt();
+            sc.nextLine();
+            if (opc == 0)
+                break;
             try {
                 switch (opc) {
                     case 1:
                         System.out.print("Ticket ID: ");
-                        int t = sc.nextInt(); sc.nextLine();
+                        int t = sc.nextInt();
+                        sc.nextLine();
                         System.out.print("Area (ex: Sala VIP): ");
                         String area = sc.nextLine();
                         EntradaAeroporto ea = entradaService.registrarEntradaAeroporto(t, area);
@@ -735,14 +766,17 @@ public class Main {
                         break;
                     case 2:
                         System.out.print("Ticket ID: ");
-                        int ta = sc.nextInt(); sc.nextLine();
+                        int ta = sc.nextInt();
+                        sc.nextLine();
                         EntradaAviao ev = entradaService.registrarEntradaAviao(ta);
                         System.out.println("Registrado: " + ev);
                         break;
                     default:
                         System.out.println("Opcao invalida.");
                 }
-            } catch (Exception e) { System.out.println("Erro: " + e.getMessage()); }
+            } catch (Exception e) {
+                System.out.println("Erro: " + e.getMessage());
+            }
         }
     }
 
@@ -755,13 +789,16 @@ public class Main {
             System.out.println("4 - Remover");
             System.out.println("0 - Voltar");
             System.out.print("Escolha: ");
-            int opc = sc.nextInt(); sc.nextLine();
-            if (opc == 0) break;
+            int opc = sc.nextInt();
+            sc.nextLine();
+            if (opc == 0)
+                break;
             try {
                 switch (opc) {
                     case 1:
                         System.out.print("Ticket ID: ");
-                        int tid = sc.nextInt(); sc.nextLine();
+                        int tid = sc.nextInt();
+                        sc.nextLine();
                         System.out.print("Conteudo/impressao (texto): ");
                         String conteudo = sc.nextLine();
                         BoardingPass b = boardingService.criarParaTicket(tid, conteudo);
@@ -769,51 +806,65 @@ public class Main {
                         break;
                     case 2:
                         System.out.print("Ticket ID: ");
-                        int q = sc.nextInt(); sc.nextLine();
+                        int q = sc.nextInt();
+                        sc.nextLine();
                         BoardingPass found = boardingService.buscarPorTicketId(q);
                         System.out.println(found != null ? found : "Nao encontrado.");
                         break;
                     case 3:
-                        for (BoardingPass bp : boardingService.listarTodos()) System.out.println(bp);
+                        for (BoardingPass bp : boardingService.listarTodos())
+                            System.out.println(bp);
                         break;
                     case 4:
                         System.out.print("ID: ");
-                        int idr = sc.nextInt(); sc.nextLine();
+                        int idr = sc.nextInt();
+                        sc.nextLine();
                         boolean rem = boardingService.remover(idr);
                         System.out.println(rem ? "Removido." : "Nao encontrado.");
                         break;
                     default:
                         System.out.println("Opcao invalida.");
                 }
-            } catch (Exception e) { System.out.println("Erro: " + e.getMessage()); }
+            } catch (Exception e) {
+                System.out.println("Erro: " + e.getMessage());
+            }
         }
     }
 
-    private static void menuAdmin(Scanner sc, AdminService adminService, CompanhiaAereaService companhiaService) {
+    private static void menuAdmin(Scanner sc, AdminService adminService, CompanhiaAereaService companhiaService,
+            BoardingPassService boardingService) {
         while (true) {
             System.out.println("\n=== Menu Admin / Relatorios ===");
             System.out.println("1 - Passageiros que sairam de um aeroporto (origem)");
             System.out.println("2 - Passageiros que chegaram em um aeroporto (destino)");
             System.out.println("3 - Arrecadacao por companhia em periodo");
+            System.out.println("4 - Voos por dia em um aeroporto");
+            System.out.println("5 - Lista de passageiros por voo");
+            System.out.println("6 - Gerar boarding pass em arquivo");
             System.out.println("0 - Voltar");
             System.out.print("Escolha: ");
-            int opc = sc.nextInt(); sc.nextLine();
-            if (opc == 0) break;
+            int opc = sc.nextInt();
+            sc.nextLine();
+            if (opc == 0)
+                break;
             try {
                 switch (opc) {
                     case 1:
                         System.out.print("Codigo aeroporto (origem): ");
                         String orig = sc.nextLine();
-                        for (Object p : adminService.passageirosQueSaíramDe(orig)) System.out.println(p);
+                        for (Object p : adminService.passageirosQueSairamDe(orig))
+                            System.out.println(p);
                         break;
                     case 2:
                         System.out.print("Codigo aeroporto (destino): ");
                         String dest = sc.nextLine();
-                        for (Object p : adminService.passageirosQueChegaramEm(dest)) System.out.println(p);
+                        for (Object p : adminService.passageirosQueChegaramEm(dest))
+                            System.out.println(p);
                         break;
                     case 3:
                         System.out.print("ID da companhia: ");
-                        int idC = sc.nextInt(); sc.nextLine();
+                        int idC = sc.nextInt();
+                        sc.nextLine();
                         CompanhiaAerea c = companhiaService.buscarPorId(idC);
                         System.out.print("Data inicio (yyyy-MM-dd): ");
                         LocalDate ini = LocalDate.parse(sc.nextLine());
@@ -821,14 +872,49 @@ public class Main {
                         LocalDate fim = LocalDate.parse(sc.nextLine());
                         System.out.println("Total arrecadado: " + adminService.arrecadacaoPorCompanhia(c, ini, fim));
                         break;
+                    case 4:
+                        System.out.print("Data (yyyy-MM-dd): ");
+                        LocalDate data = LocalDate.parse(sc.nextLine());
+                        System.out.print("Codigo aeroporto: ");
+                        String codigo = sc.nextLine();
+                        var voos = adminService.voosPorDiaAeroporto(data, codigo);
+                        if (voos.isEmpty()) {
+                            System.out.println("Nenhum voo encontrado.");
+                        } else {
+                            voos.forEach(System.out::println);
+                        }
+                        break;
+                    case 5:
+                        System.out.print("ID do voo: ");
+                        int vooId = sc.nextInt();
+                        sc.nextLine();
+                        var passageiros = adminService.listaPassageirosPorVoo(vooId);
+                        if (passageiros.isEmpty()) {
+                            System.out.println("Nenhum passageiro encontrado para o voo.");
+                        } else {
+                            passageiros.forEach(System.out::println);
+                        }
+                        break;
+                    case 6:
+                        System.out.print("ID do ticket: ");
+                        int ticketId = sc.nextInt();
+                        sc.nextLine();
+                        System.out.print("Arquivo destino (enter para padrao): ");
+                        String destino = sc.nextLine();
+                        Path arquivo = destino.isBlank() ? null : Paths.get(destino);
+                        Path gerado = boardingService.gerarBoardingPassPdf(ticketId, arquivo);
+                        System.out.println("Boarding pass salvo em: " + gerado.toAbsolutePath());
+                        break;
                     default:
                         System.out.println("Opcao invalida.");
                 }
-            } catch (Exception e) { System.out.println("Erro: " + e.getMessage()); }
+            } catch (Exception e) {
+                System.out.println("Erro: " + e.getMessage());
+            }
         }
     }
 
-    private static void menuCompanhia(Scanner sc, CompanhiaAereaService service) {
+    private static void menuCompanhia(Scanner sc, CompanhiaAereaService service, SessaoUser sessaoAtual) {
         while (true) {
             System.out.println("\n=== Menu Companhia Aerea ===");
             System.out.println("1 - Criar");
@@ -883,6 +969,35 @@ public class Main {
                     break;
                 default:
                     System.out.println("Opcao invalida.");
+            }
+        }
+    }
+
+    private static void menuImportacaoPassageiros(Scanner sc, PassageiroArquivoService arquivoService) {
+        while (true) {
+            System.out.println("\n=== Importar Passageiros ===");
+            System.out.println("1 - Ler arquivo .txt (nome;yyyy-MM-dd;documento;login;senha)");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha: ");
+            int opc = sc.nextInt();
+            sc.nextLine();
+            if (opc == 0) break;
+
+            try {
+                if (opc == 1) {
+                    System.out.print("Caminho do arquivo: ");
+                    Path arquivo = Paths.get(sc.nextLine());
+                    ResultadoImportacaoPassageiros resultado = arquivoService.importar(arquivo);
+                    System.out.printf("Linhas: %d | Importados: %d | Falhas: %d%n",
+                            resultado.linhasProcessadas(), resultado.importados(), resultado.falhas());
+                    if (resultado.possuiFalhas()) {
+                        resultado.erros().forEach(msg -> System.out.println(" - " + msg));
+                    }
+                } else {
+                    System.out.println("Opcao invalida.");
+                }
+            } catch (Exception e) {
+                System.out.println("Erro: " + e.getMessage());
             }
         }
     }

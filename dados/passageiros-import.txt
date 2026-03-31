@@ -1,0 +1,5 @@
+# nome;yyyy-MM-dd;documento;login;senha
+Joao Silva;1990-01-01;123456789;joao.import;senha123
+Maria Souza;1985-05-20;987654321;maria.import;senha123
+Carlos Lima;1992-08-14;456123789;carlos.import;senha456
+Ana Pereira;2000-03-05;741258963;ana.import;senha789

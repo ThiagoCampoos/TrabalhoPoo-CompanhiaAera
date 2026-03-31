@@ -1,49 +1,67 @@
 package checkin;
 
+import comum.Repositorio;
 import comum.SystemClock;
+import passageiro.Passageiro;
+
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import ticket.Ticket;
 import ticket.TicketService;
 import voo.Voo;
+import voo.VooService;
 
 public class CheckinService {
 
-    private final CheckinDao dao;
+    private final Repositorio<Checkin> dao;
     private final TicketService ticketService;
+    private final VooService vooService;
     private final SystemClock clock;
 
-    public CheckinService(CheckinDao dao, TicketService ticketService, SystemClock clock) {
+    public CheckinService(Repositorio<Checkin> dao, TicketService ticketService,
+                          VooService vooService, SystemClock clock) {
         this.dao = dao;
         this.ticketService = ticketService;
+        this.vooService = vooService;
         this.clock = clock;
     }
 
-    public Checkin criar(int ticketId, String documento, String assento) {
-
+    public Checkin criar(int ticketId, int passageiroIdConfirmacao, String assento) {
         Ticket ticket = ticketService.buscarPorId(ticketId);
-
         if (ticket == null) {
-            throw new IllegalArgumentException("Ticket nao possui passageiro associado.o");
+            throw new IllegalArgumentException("Ticket nao encontrado.");
         }
-        if (documento == null || !documento.equals(ticket.getPassageiro().getDocumento())) {
-            throw new IllegalArgumentException("Documento informado nao corresponde ao passageiro do ticket.");
+
+        Passageiro passageiro = ticket.getPassageiro();
+        if (passageiro == null) {
+            throw new IllegalArgumentException("Ticket nao possui passageiro associado.");
         }
-        if (dao.findByTicketId(ticketId) != null) {
+        if (passageiro.getId() != passageiroIdConfirmacao) {
+            throw new IllegalArgumentException("Passageiro informado nao corresponde ao ticket.");
+        }
+
+        if (buscarPorTicketId(ticketId) != null) {
             throw new IllegalArgumentException("Check-in ja realizado para este ticket.");
         }
-        Voo voo = ticket.getVoo();
+
+        Voo vooBase = ticket.getVoo();
+        if (vooBase == null || vooBase.getId() <= 0) {
+            throw new IllegalArgumentException("Ticket nao possui voo associado.");
+        }
+        Voo voo = vooService.buscarPorId(vooBase.getId());
         if (voo == null || voo.getData() == null) {
             throw new IllegalArgumentException("Voo associado ao ticket invalido.");
         }
+
         LocalTime horarioVoo = voo.getHorario() != null ? voo.getHorario() : LocalTime.MIDNIGHT;
         LocalDateTime partida = voo.getData().atTime(horarioVoo);
-
         LocalDateTime agora = clock.now();
-        LocalDateTime inicioJanela = partida.minusHours(24);
-        if (agora.isBefore(inicioJanela)) {
+
+        if (agora.isBefore(partida.minusHours(24))) {
             throw new IllegalArgumentException("Checkin so pode ser realizado a partir de 24 horas antes do voo.");
         }
+
         int vendidos = 0;
         Ticket[] todos = ticketService.listarTodos();
         if (todos != null) {
@@ -61,7 +79,7 @@ public class CheckinService {
 
         Checkin c = new Checkin();
         c.setTicketId(ticketId);
-        c.setDocumento(documento.trim());
+        c.setDocumento(passageiro.getDocumento());
         c.setAssento(finalAssento);
         c.auditar(clock);
 
@@ -73,7 +91,8 @@ public class CheckinService {
     }
 
     public Checkin[] listarTodos() {
-        return dao.findAll();
+        List<Checkin> todos = dao.findAll();
+        return todos.toArray(new Checkin[0]);
     }
 
     public boolean excluir(int id) {
@@ -81,17 +100,13 @@ public class CheckinService {
     }
 
     public Checkin buscarPorTicketId(int ticketId) {
-        Checkin[] todos = listarTodos();
-        if (todos == null)
-            return null;
-        for (Checkin c : todos) {
-            if (c == null)
-                continue;
-            if (c.getTicketId() == ticketId) {
-                return c;
-            }
+        if (dao instanceof CheckinDaoJdbc jdbc) {
+            return jdbc.findByTicketId(ticketId);
         }
-        return null;
+        return dao.findAll().stream()
+                .filter(c -> c != null && c.getTicketId() == ticketId)
+                .findFirst()
+                .orElse(null);
     }
 
     public String gerarBoardingPass(Checkin checkin) {

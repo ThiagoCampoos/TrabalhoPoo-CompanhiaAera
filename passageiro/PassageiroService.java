@@ -1,14 +1,17 @@
 package passageiro;
 
+import comum.Repositorio;
 import comum.SystemClock;
 import java.time.LocalDate;
+import java.util.List;
+
 
 public class PassageiroService {
 
-    private final PassageiroDao dao;
+    private final Repositorio<Passageiro> dao;
     private final SystemClock clock;
 
-    public PassageiroService(PassageiroDao dao, SystemClock clock) {
+    public PassageiroService(Repositorio<Passageiro> dao, SystemClock clock) {
         this.dao = dao;
         this.clock = clock;
     }
@@ -80,6 +83,7 @@ public class PassageiroService {
     }
 
     public Passageiro[] listarTodos() {
-        return dao.findAll();
+        List<Passageiro> todos = dao.findAll();
+        return todos.toArray(new Passageiro[0]);
     }
 }

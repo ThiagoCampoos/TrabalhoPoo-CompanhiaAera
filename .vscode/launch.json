@@ -1,39 +1,40 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-
-        {
-            "type": "java",
-            "name": "java",
-            "request": "launch",
-            "mainClass": "main.Main",
-            "classPaths": [
-                "${workspaceFolder}/bin"
-            ],
-            "preLaunchTask": "javac-build",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "vmArgs": "-Dfile.encoding=UTF-8",
-            "args": []
-        },
-        {
-            "type": "java",
-            "name": "Main (No Build)",
-            "request": "launch",
-            "mainClass": "main.Main",
-            "classPaths": [
-                "${workspaceFolder}/bin"
-            ],
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "java",
-            "name": "Attach (Remote Debug)",
-            "request": "attach",
-            "hostName": "localhost",
-            "port": 5005,
-            "timeout": 30000
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "java",
+      "request": "launch",
+      "mainClass": "main.Main",
+      "classPaths": [
+        "${workspaceFolder}/bin",
+        "${workspaceFolder}/lib/mysql-connector-j-9.5.0.jar"
+      ],
+      "preLaunchTask": "javac-build",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "vmArgs": "-Dfile.encoding=UTF-8",
+      "args": []
+    },
+    {
+      "type": "java",
+      "name": "Main (No Build)",
+      "request": "launch",
+      "mainClass": "main.Main",
+      "classPaths": [
+        "${workspaceFolder}/bin",
+        "${workspaceFolder}/lib/mysql-connector-j-9.5.0.jar"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "java",
+      "name": "Attach (Remote Debug)",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005,
+      "timeout": 30000
+    }
+  ]
 }

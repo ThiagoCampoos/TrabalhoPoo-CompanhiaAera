@@ -8,7 +8,6 @@ import java.util.Objects;
 
 public class Passageiro extends EntidadeBase {
 
-    private int id;
     private String nome;
     private LocalDate nascimento;
     private String documento;
