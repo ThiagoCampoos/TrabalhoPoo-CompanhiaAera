@@ -3,13 +3,12 @@ package main;
 import admin.*;
 import boarding.*;
 import checkin.Checkin;
-import checkin.CheckinDaoJdbc;
+import checkin.CheckinDao;
 import checkin.CheckinService;
 import companhia.*;
 import comum.SystemClock;
 import despacho.*;
 import entrada.*;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -21,7 +20,7 @@ import ticket.*;
 import user.AuthService;
 import user.Perfil;
 import user.SessaoUser;
-import user.UserDaoJdbc;
+import user.UserDao;
 import user.UserService;
 import voo.*;
 
@@ -29,22 +28,22 @@ public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         SystemClock clock = new SystemClock();
-        CompanhiaAereaService companhiaService = new CompanhiaAereaService(new CompanhiaAereaDaojdbc(), clock);
-        PassageiroDaoJdbc passageiroDao = new PassageiroDaoJdbc();
+        CompanhiaAereaService companhiaService = new CompanhiaAereaService(new CompanhiaAereaDao(), clock);
+        PassageiroDao passageiroDao = new PassageiroDao();
         PassageiroService passageiroService = new PassageiroService(passageiroDao, clock);
         PassageiroArquivoService passageiroArquivoService = new PassageiroArquivoService(passageiroService);
-        VooService vooService = new VooService(new VooDaoJdbc(), new SystemClock());
-        TicketService ticketService = new TicketService(new TicketDaoJdbc(), new SystemClock());
-        CheckinService checkinService = new CheckinService(new CheckinDaoJdbc(),
+        VooService vooService = new VooService(new VooDao(), new SystemClock());
+        TicketService ticketService = new TicketService(new TicketDao(), new SystemClock());
+        CheckinService checkinService = new CheckinService(new CheckinDao(),
                 ticketService, vooService, clock);
-        ReservaService reservaService = new ReservaService(new ReservaDaoJdbc(), new SystemClock());
-        DespachoService despachoService = new DespachoService(new DespachoDaoJdbc(), new SystemClock());
-        EntradaService entradaService = new EntradaService(new EntradaDaoJdbc(), new EntradaAviaoDaoJdbc(),
+        ReservaService reservaService = new ReservaService(new ReservaDao(), new SystemClock());
+        DespachoService despachoService = new DespachoService(new DespachoDao(), new SystemClock());
+        EntradaService entradaService = new EntradaService(new EntradaDao(), new EntradaAviaoDao(),
                 new SystemClock());
-        BoardingPassService boardingService = new BoardingPassService(new BoardingPassDaoJdbc(), new SystemClock());
-        AdminService adminService = new AdminService(new TicketDaoJdbc(), new VooDaoJdbc(), new PassageiroDaoJdbc(),
+        BoardingPassService boardingService = new BoardingPassService(new BoardingPassDao(), new SystemClock());
+        AdminService adminService = new AdminService(new TicketDao(), new VooDao(), new PassageiroDao(),
                 new SystemClock());
-        UserService userService = new UserService(new UserDaoJdbc(), new SystemClock());
+        UserService userService = new UserService(new UserDao(), new SystemClock());
         String senhaPadraoAdmin = System.getProperty("ADMIN_DEFAULT_PASSWORD",
                 System.getenv("ADMIN_DEFAULT_PASSWORD"));
         userService.garantirAdministradorInicial(senhaPadraoAdmin);
@@ -981,7 +980,8 @@ public class Main {
             System.out.print("Escolha: ");
             int opc = sc.nextInt();
             sc.nextLine();
-            if (opc == 0) break;
+            if (opc == 0)
+                break;
 
             try {
                 if (opc == 1) {

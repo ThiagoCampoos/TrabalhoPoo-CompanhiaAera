@@ -1,17 +1,17 @@
 package user;
 
+import comum.Repositorio;
 import comum.SystemClock;
 import java.time.LocalDateTime;
 import passageiro.Passageiro;
-import passageiro.PassageiroDaoJdbc;
 
 public class AuthService {
     private final UserService userService;
-    private final PassageiroDaoJdbc passageiroDao;
+    private final Repositorio<Passageiro> passageiroDao;
     private final SystemClock clock;
     private SessaoUser sessaoAtual;
 
-    public AuthService(UserService userService, PassageiroDaoJdbc passageiroDao, SystemClock clock) {
+    public AuthService(UserService userService, Repositorio<Passageiro> passageiroDao, SystemClock clock) {
         this.userService = userService;
         this.passageiroDao = passageiroDao;
         this.clock = clock;

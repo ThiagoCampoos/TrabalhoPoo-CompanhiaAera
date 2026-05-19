@@ -1,6 +1,9 @@
 package comum;
 
-public abstract class DaoBase<T extends EntidadeBase> {
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class DaoBase<T extends EntidadeBase> implements Repositorio<T> {
 
     public T[] data;
     public int size = 0;
@@ -69,12 +72,31 @@ public abstract class DaoBase<T extends EntidadeBase> {
         return cloneEntity(data[idx]);
     }
 
-    public T[] findAll() {
+    public T[] findAllArray() {
         T[] result = createArray(size);
         for (int i = 0; i < size; i++) {
             result[i] = cloneEntity(data[i]);
         }
         return result;
+    }
+
+    @Override
+    public List<T> findAll() {
+        List<T> result = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            result.add(cloneEntity(data[i]));
+        }
+        return result;
+    }
+
+    @Override
+    public T findByDocumento(String documento) {
+        return null; // Subclasses override if needed
+    }
+
+    @Override
+    public T findByLogin(String login) {
+        return null; // Subclasses override if needed
     }
 
     public int count() {

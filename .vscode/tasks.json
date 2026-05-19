@@ -4,8 +4,10 @@
     {
       "label": "javac-build",
       "type": "shell",
-      "command": "javac",
+      "command": "C:\\Program Files\\Microsoft\\jdk-17.0.18.8-hotspot\\bin\\javac.exe",
       "args": [
+        "--release",
+        "17",
         "-cp",
         "lib/mysql-connector-j-9.5.0.jar",
         "-d",

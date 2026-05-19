@@ -16,7 +16,8 @@ public class CheckinDao extends DaoBase<Checkin> {
 
     @Override
     public Checkin cloneEntity(Checkin c) {
-        if(c == null) return null;
+        if (c == null)
+            return null;
         Checkin clone = new Checkin();
         clone.setId(c.getId());
         clone.setTicketId(c.getTicketId());
@@ -35,8 +36,10 @@ public class CheckinDao extends DaoBase<Checkin> {
         }
         return null;
     }
-  public Checkin[] findByDocumento(String documento) {
-        if (documento == null) return new Checkin[0];
+
+    public Checkin[] findAllByDocumento(String documento) {
+        if (documento == null)
+            return new Checkin[0];
         documento = documento.trim();
         int count = 0;
         for (int i = 0; i < size; i++) {
@@ -54,5 +57,3 @@ public class CheckinDao extends DaoBase<Checkin> {
         return result;
     }
 }
-
-
