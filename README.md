@@ -23,8 +23,9 @@ comum/
 Classes base e utilitários, como controle de datas, auditoria e padrões para entidades.
 
 Como funciona cada parte
+
 1. Entidades
-Cada módulo tem uma classe principal que representa um "objeto do mundo real":
+   Cada módulo tem uma classe principal que representa um "objeto do mundo real":
 
 Passageiro: pessoa que pode comprar passagens.
 CompanhiaAerea: empresa responsável pelos voos.
@@ -33,19 +34,18 @@ Ticket: passagem comprada por um passageiro para um voo.
 Essas classes têm atributos (ex: nome, data de nascimento, origem, destino) e métodos para validar os dados e registrar quando foram criadas/modificadas.
 
 2. DAO (Data Access Object)
-Cada entidade tem um DAO, que é responsável por guardar os dados em memória (usando arrays).
-Exemplo: PassageiroDao, VooDao, TicketDao.
-Eles permitem criar, buscar, atualizar e remover objetos.
+   Cada entidade tem um DAO, que é responsável por guardar os dados em memória (usando arrays).
+   Exemplo: PassageiroDao, VooDao, TicketDao.
+   Eles permitem criar, buscar, atualizar e remover objetos.
 
 3. Service
-Os serviços são responsáveis pelas regras de negócio.
-Exemplo:
+   Os serviços são responsáveis pelas regras de negócio.
+   Exemplo:
 
 Validar se um passageiro pode ser criado.
 Gerar o código do ticket (ex: id-voo).
 Auditar datas de criação/modificação.
-Buscar voos por origem, destino e data.
-4. Menus (CLI)
+Buscar voos por origem, destino e data. 4. Menus (CLI)
 No arquivo principal (Main.java), há menus para cada função do sistema.
 O usuário pode escolher opções como:
 
@@ -86,3 +86,45 @@ O sistema não usa banco de dados, tudo é feito em memória.
 Não há testes automáticos ou integração com outros sistemas.
 O código é todo em Java puro, sem frameworks externos.
 Para testar, basta seguir os menus e usar os dados já cadastrados ou criar novos.
+
+Exemplo de Inversão de Dependência
+Para apresentar o SOLID, o melhor exemplo neste projeto é o UserService. Ele depende da abstração Repositorio<User>, e não de uma classe concreta.
+
+O que isso significa na prática:
+
+- O serviço conhece apenas o contrato.
+- A implementação concreta pode ser em memória, JDBC ou uma versão falsa para teste.
+- A regra de negócio continua igual, mesmo se o armazenamento mudar.
+
+Exemplo de cenário simples:
+
+1. Criar um usuário usando UserService.
+2. Autenticar esse mesmo usuário.
+3. Mostrar que o serviço funciona com um repositório em memória sem alterar o código de negócio.
+
+Classe de demonstração:
+
+- main/DemoInversaoDependencia.java
+
+Esse arquivo mostra um repositório em memória pequeno, usado só para apresentação. Ele deixa claro que o UserService não depende do detalhe de persistência.
+
+Inversão apenas na borda
+No projeto atual, a inversão de dependência acontece principalmente na composição dos objetos:
+
+- Main cria as implementações concretas.
+- Os services recebem as dependências por construtor.
+- A regra de negócio não instancia DAO diretamente.
+
+Isso quer dizer que a borda do sistema monta tudo e o miolo fica dependente de abstrações.
+
+Trechos para explicar em apresentação:
+
+- [comum/Repositorio.java](comum/Repositorio.java)
+- [user/UserService.java](user/UserService.java)
+- [main/Main.java](main/Main.java)
+
+Ponto de atenção:
+
+- Alguns serviços ainda fazem instanceof para distinguir DAO em memória e JDBC.
+- Isso enfraquece um pouco o DIP puro, porque o serviço passa a conhecer classes concretas.
+- Mesmo assim, o padrão aparece de forma clara na borda e no uso de construtores.
