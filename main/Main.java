@@ -25,6 +25,18 @@ import user.UserService;
 import voo.*;
 
 public class Main {
+    private static final class TicketExtras {
+        final boolean seguro;
+        final int bagagensExtras;
+        final double promocaoPercent;
+
+        TicketExtras(boolean seguro, int bagagensExtras, double promocaoPercent) {
+            this.seguro = seguro;
+            this.bagagensExtras = bagagensExtras;
+            this.promocaoPercent = promocaoPercent;
+        }
+    }
+
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         SystemClock clock = new SystemClock();
@@ -41,8 +53,7 @@ public class Main {
         EntradaService entradaService = new EntradaService(new EntradaDao(), new EntradaAviaoDao(),
                 new SystemClock());
         BoardingPassService boardingService = new BoardingPassService(new BoardingPassDao(), new SystemClock());
-        AdminService adminService = new AdminService(new TicketDao(), new VooDao(), new PassageiroDao(),
-                new SystemClock());
+        AdminService adminService = new AdminService(new TicketDao(), new VooDao(), new PassageiroDao());
         UserService userService = new UserService(new UserDao(), new SystemClock());
         String senhaPadraoAdmin = System.getProperty("ADMIN_DEFAULT_PASSWORD",
                 System.getenv("ADMIN_DEFAULT_PASSWORD"));
@@ -107,6 +118,20 @@ public class Main {
             }
         }
         sc.close();
+    }
+
+    private static TicketExtras coletarExtrasTicket(Scanner sc, String contexto) {
+        System.out.println("Extras do " + contexto + "");
+        System.out.print("Adicionar seguro? (s/n): ");
+        boolean seguro = sc.nextLine().trim().equalsIgnoreCase("s");
+
+        System.out.print("Quantidade de bagagens extras: ");
+        int bagagensExtras = Integer.parseInt(sc.nextLine().trim());
+
+        System.out.print("Percentual de promocao (0 a 100): ");
+        double promocaoPercent = Double.parseDouble(sc.nextLine().trim());
+
+        return new TicketExtras(seguro, bagagensExtras, promocaoPercent);
     }
 
     private static SessaoUser realizarLogin(Scanner sc, AuthService authService) {
@@ -247,14 +272,18 @@ public class Main {
         System.out.print("Valor do ticket de ida: ");
         double valorIda = sc.nextDouble();
         sc.nextLine();
-        Ticket ticketIda = ticketService.criar(valorIda, vooIda, passageiro, null, null, "null");
+        TicketExtras extrasIda = coletarExtrasTicket(sc, "ida");
+        Ticket ticketIda = ticketService.criar(valorIda, vooIda, passageiro, null, null, "null",
+                extrasIda.seguro, extrasIda.bagagensExtras, extrasIda.promocaoPercent);
         System.out.println("Ticket de ida criado: " + ticketIda);
 
         if (vooVolta != null) {
             System.out.print("Valor do ticket de volta: ");
             double valorVolta = sc.nextDouble();
             sc.nextLine();
-            Ticket ticketVolta = ticketService.criar(valorVolta, vooVolta, passageiro, null, null, "AUTO");
+            TicketExtras extrasVolta = coletarExtrasTicket(sc, "volta");
+            Ticket ticketVolta = ticketService.criar(valorVolta, vooVolta, passageiro, null, null, "AUTO",
+                    extrasVolta.seguro, extrasVolta.bagagensExtras, extrasVolta.promocaoPercent);
             System.out.println("Ticket de volta criado: " + ticketVolta);
         }
     }
@@ -295,7 +324,9 @@ public class Main {
                             System.out.println("Voo ou passageiro nao encontrado.");
                             break;
                         }
-                        Ticket novo = ticketService.criar(valor, voo, passageiro, null, null, "AUTO");
+                        TicketExtras extras = coletarExtrasTicket(sc, "novo ticket");
+                        Ticket novo = ticketService.criar(valor, voo, passageiro, null, null, "AUTO",
+                                extras.seguro, extras.bagagensExtras, extras.promocaoPercent);
                         System.out.println("Criado: " + novo);
                         break;
                     case 2:

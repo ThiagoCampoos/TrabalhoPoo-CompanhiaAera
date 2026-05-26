@@ -17,12 +17,20 @@ public class TicketDao extends DaoBase<Ticket> {
     public Ticket cloneEntity(Ticket entity) {
         if (entity == null)
             return null;
-        return new Ticket(
+        Ticket copia = new Ticket(
                 entity.getId(),
                 entity.getValor(),
                 entity.getVoo(),
                 entity.getPassageiro(),
                 entity.getCodigo(), entity.getAssento());
+        copia.setPrecoTotal(entity.getPrecoTotal());
+        copia.setDescricaoExtras(entity.getDescricaoExtras());
+        copia.setSeguro(entity.isSeguro());
+        copia.setExtraBagagens(entity.getExtraBagagens());
+        copia.setPromocaoPercent(entity.getPromocaoPercent());
+        copia.setDataCriacao(entity.getDataCriacao());
+        copia.setDataModificacao(entity.getDataModificacao());
+        return copia;
     }
 
     public Ticket findByCodigo(String codigo) {

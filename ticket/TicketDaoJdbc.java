@@ -14,13 +14,13 @@ public class TicketDaoJdbc implements Repositorio<Ticket> {
     @Override
     public Ticket create(Ticket ticket) {
         String sql = """
-                INSERT INTO ticket (valor, voo_id, passageiro_id, codigo, assento, data_criacao, data_modificacao)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO ticket (valor, preco_total, descricao_extras, voo_id, passageiro_id, codigo, assento, data_criacao, data_modificacao)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         LocalDateTime agora = LocalDateTime.now();
 
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             preencherStatement(ps, ticket, agora);
             ps.executeUpdate();
@@ -42,7 +42,7 @@ public class TicketDaoJdbc implements Repositorio<Ticket> {
     public Ticket findById(int id) {
         String sql = "SELECT * FROM ticket WHERE id = ?";
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -59,8 +59,8 @@ public class TicketDaoJdbc implements Repositorio<Ticket> {
         List<Ticket> lista = new ArrayList<>();
 
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 lista.add(mapear(rs));
@@ -75,21 +75,23 @@ public class TicketDaoJdbc implements Repositorio<Ticket> {
     public Ticket update(Ticket ticket) {
         String sql = """
                 UPDATE ticket
-                   SET valor = ?, voo_id = ?, passageiro_id = ?, codigo = ?, assento = ?, data_modificacao = ?
+                   SET valor = ?, preco_total = ?, descricao_extras = ?, voo_id = ?, passageiro_id = ?, codigo = ?, assento = ?, data_modificacao = ?
                  WHERE id = ?
                 """;
         LocalDateTime agora = LocalDateTime.now();
 
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setDouble(1, ticket.getValor());
-            ps.setInt(2, ticket.getVoo().getId());
-            ps.setInt(3, ticket.getPassageiro().getId());
-            ps.setString(4, ticket.getCodigo());
-            ps.setString(5, ticket.getAssento());
-            ps.setTimestamp(6, Timestamp.valueOf(agora));
-            ps.setInt(7, ticket.getId());
+            ps.setDouble(2, ticket.getPrecoTotal());
+            ps.setString(3, ticket.getDescricaoExtras());
+            ps.setInt(4, ticket.getVoo().getId());
+            ps.setInt(5, ticket.getPassageiro().getId());
+            ps.setString(6, ticket.getCodigo());
+            ps.setString(7, ticket.getAssento());
+            ps.setTimestamp(8, Timestamp.valueOf(agora));
+            ps.setInt(9, ticket.getId());
 
             ps.executeUpdate();
             ticket.setDataModificacao(agora);
@@ -103,7 +105,7 @@ public class TicketDaoJdbc implements Repositorio<Ticket> {
     public boolean deleteById(int id) {
         String sql = "DELETE FROM ticket WHERE id = ?";
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
@@ -116,7 +118,7 @@ public class TicketDaoJdbc implements Repositorio<Ticket> {
     public Ticket findByDocumento(String codigo) {
         String sql = "SELECT * FROM ticket WHERE codigo = ?";
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, codigo);
             try (ResultSet rs = ps.executeQuery()) {
@@ -134,18 +136,28 @@ public class TicketDaoJdbc implements Repositorio<Ticket> {
 
     private void preencherStatement(PreparedStatement ps, Ticket ticket, LocalDateTime agora) throws SQLException {
         ps.setDouble(1, ticket.getValor());
-        ps.setInt(2, ticket.getVoo().getId());
-        ps.setInt(3, ticket.getPassageiro().getId());
-        ps.setString(4, ticket.getCodigo());
-        ps.setString(5, ticket.getAssento());
-        ps.setTimestamp(6, Timestamp.valueOf(agora));
-        ps.setTimestamp(7, Timestamp.valueOf(agora));
+        ps.setDouble(2, ticket.getPrecoTotal());
+        ps.setString(3, ticket.getDescricaoExtras());
+        ps.setInt(4, ticket.getVoo().getId());
+        ps.setInt(5, ticket.getPassageiro().getId());
+        ps.setString(6, ticket.getCodigo());
+        ps.setString(7, ticket.getAssento());
+        ps.setTimestamp(8, Timestamp.valueOf(agora));
+        ps.setTimestamp(9, Timestamp.valueOf(agora));
     }
 
     private Ticket mapear(ResultSet rs) throws SQLException {
         Ticket ticket = new Ticket();
         ticket.setId(rs.getInt("id"));
         ticket.setValor(rs.getDouble("valor"));
+        try {
+            ticket.setPrecoTotal(rs.getDouble("preco_total"));
+        } catch (SQLException ignored) {
+        }
+        try {
+            ticket.setDescricaoExtras(rs.getString("descricao_extras"));
+        } catch (SQLException ignored) {
+        }
         ticket.setCodigo(rs.getString("codigo"));
         ticket.setAssento(rs.getString("assento"));
 
@@ -165,8 +177,10 @@ public class TicketDaoJdbc implements Repositorio<Ticket> {
 
         Timestamp criacao = rs.getTimestamp("data_criacao");
         Timestamp modificacao = rs.getTimestamp("data_modificacao");
-        if (criacao != null) ticket.setDataCriacao(criacao.toLocalDateTime());
-        if (modificacao != null) ticket.setDataModificacao(modificacao.toLocalDateTime());
+        if (criacao != null)
+            ticket.setDataCriacao(criacao.toLocalDateTime());
+        if (modificacao != null)
+            ticket.setDataModificacao(modificacao.toLocalDateTime());
 
         return ticket;
     }
